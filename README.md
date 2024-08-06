@@ -1,5 +1,37 @@
 # Standing up a Talos Linux Cluster on AWS Using Pulumi
 
+# New README
+
+Quick commands:
+
+```console
+$ cp envrc.template .envrc
+# replace values with your AWS information
+$ podman build -t "la-cka" --rm .
+$ podman container run --rm -it --entrypoint=bash -v "${PWD}":/app -w /app la-cka:latest
+
+# inside container
+$ direnv allow
+$ pulumi login --local
+$ pulumi stack init dev
+$ pulumi up
+
+# https://www.siderolabs.com/blog/deploying-talos-on-aws-with-cdk/
+$ talosctl gen config talos-k8s-aws-tutorial https://<lbDns>:6443 --with-examples=false --with-docs=false     --with-examples=false --with-docs=false     --config-patch='[{"op":"replace", "path":"/machine/kubelet", "value": {"registerWithFQDN": true}},
+        {"op":"replace", "path":"/cluster/externalCloudProvider", "value": {
+            "enabled": true,
+            "manifests": [
+                "https://raw.githubusercontent.com/kubernetes/cloud-provider-aws/v1.20.0-alpha.0/manifests/rbac.yaml", 
+                "https://raw.githubusercontent.com/kubernetes/cloud-provider-aws/v1.20.0-alpha.0/manifests/aws-cloud-controller-manager-daemonset.yaml"
+            ]
+        }}]'
+
+$ pulumi up
+```
+
+
+# Old README
+
 **NOTE:** The code in this repository is currently non-functional due to an issue with all released versions of the Pulumi provider for Talos Linux.
 
 This repository contains a [Pulumi](https://www.pulumi.com) program, written in Golang, to automate the process of standing up a [Talos Linux](https://talos.dev) cluster on AWS.

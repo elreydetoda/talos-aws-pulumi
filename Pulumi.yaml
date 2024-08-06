@@ -1,3 +1,11 @@
-name: talos-aws-pulumi
-runtime: go
-description: A Pulumi program in Go to stand up a Talos Linux cluster on AWS
+name: talos-aws-pulumi_python
+runtime:
+  name: python
+  options:
+    toolchain: pip
+    virtualenv: venv
+description: An AWS + Talos k8s cluster
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: aws-python
