@@ -6,23 +6,26 @@ import pulumi
 import pulumi_aws as aws
 import pulumi_awsx as awsx
 
-internal_ip_range = "10.0.0.0/16"
+internal_ip_range = "10.230.0.0/16"
 vpc = awsx.ec2.Vpc(
     "vpc",
     cidr_block=internal_ip_range,
     enable_dns_hostnames=True,
     enable_dns_support=True,
+    nat_gateways=awsx.ec2.NatGatewayConfigurationArgs(
+        strategy=awsx.ec2.NatGatewayStrategy.SINGLE,
+    ),
 )
 
 aws_region = aws.get_region()
 
-talos_version = r_get(
-    f"https://api.github.com/repos/siderolabs/talos/releases/latest"
-).json()["tag_name"]
+# talos_version = r_get(
+#     f"https://api.github.com/repos/siderolabs/talos/releases/latest"
+# ).json()["tag_name"]
 # hardcoding for now, since 1.7.5 seems to be having issues
-#   & I know 1.7.0 works because of: youtu.be/Erlfg6VhfJE
-#   I was getting all ports being closed with 1.7.5
 # talos_version = "v1.7.4"
+# talos_version = "v1.6.8"
+talos_version = "v1.7.0"
 
 ami_id_array: list[dict[str, str]] = r_get(
     # from: youtu.be/Erlfg6VhfJE
@@ -117,9 +120,9 @@ target_group = aws.lb.TargetGroup(
     target_type="instance",
     vpc_id=vpc.vpc_id,
     health_check=aws.lb.TargetGroupHealthCheckArgs(
-        path="/healthz",
-        port="6443",
-        protocol="HTTP",
+        # path="/healthz",
+        # port="6443",
+        protocol="TCP",
     ),
 )
 
@@ -128,7 +131,7 @@ target_group = aws.lb.TargetGroup(
 K8S_INSTANCE_TYPE = "t3a.medium"
 
 cpInstances: list[aws.ec2.Instance] = []
-for i in range(3):
+for i in range(1):
     cpInstance = aws.ec2.Instance(
         f"talosCp{i}",
         associate_public_ip_address=True,
@@ -173,7 +176,7 @@ aws.lb.Listener(
 )
 
 wkrInstances: list[aws.ec2.Instance] = []
-for i in range(3):
+for i in range(2):
     wkrInstance = aws.ec2.Instance(
         f"talosWkr{i}",
         associate_public_ip_address=True,
@@ -202,12 +205,12 @@ ec2_instances = cpInstances + wkrInstances
 for i, instance in enumerate(cpInstances):
     pulumi.export(f"cpInstance{i}Id", instance.id)
     pulumi.export(f"cpInstance{i}PublicIp", instance.public_ip)
-    # pulumi.export(f"instance{i}PrivateIp", instance.private_ip)
-    pulumi.export(f"cpInstance{i}PublicDns", instance.public_dns)
+    pulumi.export(f"instance{i}PrivateIp", instance.private_ip)
+    # pulumi.export(f"cpInstance{i}PublicDns", instance.public_dns)
     # pulumi.export(f"instance{i}PrivateDns", instance.private_dns)
 for i, instance in enumerate(wkrInstances):
     pulumi.export(f"wkrInstance{i}Id", instance.id)
     pulumi.export(f"wkrInstance{i}PublicIp", instance.public_ip)
-    # pulumi.export(f"instance{i}PrivateIp", instance.private_ip)
-    pulumi.export(f"wkrInstance{i}PublicDns", instance.public_dns)
+    pulumi.export(f"wkrInstance{i}PrivateIp", instance.private_ip)
+    # pulumi.export(f"wkrInstance{i}PublicDns", instance.public_dns)
     # pulumi.export(f"instance{i}PrivateDns", instance.private_dns)
