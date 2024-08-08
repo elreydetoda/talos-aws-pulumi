@@ -15,18 +15,18 @@ $ direnv allow
 $ pulumi login --local
 $ pulumi stack init dev
 $ pulumi up
-
-# https://www.siderolabs.com/blog/deploying-talos-on-aws-with-cdk/
-$ talosctl gen config talos-k8s-aws-tutorial https://<lbDns>:6443 --with-examples=false --with-docs=false     --with-examples=false --with-docs=false     --config-patch='[{"op":"replace", "path":"/machine/kubelet", "value": {"registerWithFQDN": true}},
-        {"op":"replace", "path":"/cluster/externalCloudProvider", "value": {
-            "enabled": true,
-            "manifests": [
-                "https://raw.githubusercontent.com/kubernetes/cloud-provider-aws/v1.20.0-alpha.0/manifests/rbac.yaml", 
-                "https://raw.githubusercontent.com/kubernetes/cloud-provider-aws/v1.20.0-alpha.0/manifests/aws-cloud-controller-manager-daemonset.yaml"
-            ]
-        }}]'
-
-$ pulumi up
+# check to make sure connection is working
+$ talosctl --talosconfig talosconfig -n <internal_ip> -e <external_ip> dmesg
+# bootstrap node 
+$ talosctl --talosconfig talosconfig -n <internal_ip> -e <external_ip> bootstrap
+# wait till Status: Ready
+$ talosctl --talosconfig talosconfig -n <internal_ip> -e <external_ip> dashboard
+# get kubeconfig
+$ talosctl --talosconfig talosconfig -n <internal_ip> -e <external_ip> kubeconfig ./kube.config
+# export for kubectl
+$ export KUBECONFIG=./kube.config
+# validate kubectl access
+$ kubectl get nodes
 ```
 
 
