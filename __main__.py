@@ -279,7 +279,7 @@ w_file_content = WorkerContent(
 K8S_INSTANCE_TYPE = "t3a.medium"
 
 cpInstances: list[aws.ec2.Instance] = []
-for i in range(1):
+for i in range(3):
     cpInstance = aws.ec2.Instance(
         f"talosCp{i}",
         associate_public_ip_address=True,
@@ -313,7 +313,7 @@ aws.lb.Listener(
 )
 
 wkrInstances: list[aws.ec2.Instance] = []
-for i in range(2):
+for i in range(3):
     wkrInstance = aws.ec2.Instance(
         f"talosWkr{i}",
         associate_public_ip_address=True,
